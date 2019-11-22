@@ -8,11 +8,6 @@
 	size_hint_y: None
 	height: sp(30)
 
-<Button>:
-	size_hint_y: None
-	height: sp(30)
-
-
 <PLabel@Label>:
 	canvas.before:
 		Color:
@@ -24,11 +19,8 @@
 	height: sp(50)
 	font_size: sp(20)
 
-MainScreen:
-
 <MainScreen>:
 	orientation: 'vertical'
-	user: user
 	carousel: carousel
 	searchbook: searchbook
 	bookslist: bookslist
@@ -70,84 +62,12 @@ MainScreen:
 				size: self.height*2, self.height
 				pos: self.pos
 		id: carousel
-		User:
-			id: user
 		SearchBook:
 			id: searchbook
 		BooksList:
 			id: bookslist
 		Downloads:
 			id: downloads
-
-<User@BoxLayout>:
-	orientation: 'vertical'
-	padding: sp(20)
-	spacing: sp(5)
-	BoxLayout:
-	Label:
-		id: anon
-		canvas.before:
-			Color:
-				rgba: 33/255., 33/255., 33/255., .8
-			Rectangle:
-				size: self.size
-				pos: self.pos
-		text: '[size=15sp]You are an [b]Anonymous[/b] User.[/size]\n[color=#e74c3c]anonymous users are not allowed to download.[/color]'
-		markup: True
-		size_hint_y: None
-		height: self.texture_size[1]+sp(10)
-		text_size: (self.width, None)
-	Label:
-		id: sin
-		text: 'Give yourself an identity.'
-		markup: True
-		size_hint_y: None
-		height: self.texture_size[1]+sp(10)
-		text_size: (self.width, None)
-		font_size: sp(20)
-	BoxLayout:
-		spacing: sp(5)
-		padding: sp(5)
-		orientation: 'vertical'
-		size_hint_y: None
-		height: sp(200)
-		TextInput:
-			hint_text: 'Email'
-			id: semail
-		TextInput:
-			hint_text: 'Username'
-			id: susername
-		TextInput:
-			hint_text: 'Password'
-			id: spassword
-			password: True
-		Button:
-			text: 'Sign Up'
-			on_press: app.root.signup()
-	BoxLayout:
-	# Label:
-	# 	text: 'Or'
-	# 	markup: True
-	# 	size_hint_y: None
-	# 	height: self.texture_size[1]+sp(10)
-	# 	text_size: (self.width, None)
-	# 	font_size: sp(17)
-	# BoxLayout:
-	# 	spacing: sp(5)
-	# 	padding: sp(5)
-	# 	orientation: 'vertical'
-	# 	size_hint_y: None
-	# 	height: sp(150)
-	# 	TextInput:
-	# 		hint_text: 'Username'
-	# 		id: lusername
-	# 	TextInput:
-	# 		hint_text: 'Password'
-	# 		id: lpassword
-	# 		password: True
-	# 	Button:
-	# 		text: 'Login'
-	# 		on_press: app.root.logging()
 
 <SearchBook@RelativeLayout>:
 	book_search_box: book_search_box
@@ -206,6 +126,51 @@ MainScreen:
 			height: self.minimum_height
 			spacing: sp(13)
 			padding: sp(13)
+
+<Login@BoxLayout>:
+	name: name
+	email: email
+	orientation: 'vertical'
+	spacing: sp(5)
+	padding: sp(5)
+	BoxLayout:
+	BoxLayout:
+		padding: sp(8)
+		canvas:
+			Color:
+				rgba: 0, 0, 0, .6
+			Rectangle:
+				size: self.size
+				pos: self.pos
+		size_hint_y: None
+		height: sp(50)
+		Label:
+			text: 'Name'
+			font_size: sp(17)			
+		TextInput:
+			id: name
+	BoxLayout:
+		padding: sp(8)
+		canvas:
+			Color:
+				rgba: 0, 0, 0, .6
+			Rectangle:
+				size: self.size
+				pos: self.pos
+		size_hint_y: None
+		height: sp(50)
+		Label:
+			text: 'Email'
+			font_size: sp(17)
+		TextInput:
+			id: email
+	Button:
+		text: 'Save'
+		size_hint_y: None
+		height: sp(40)
+		font_size: sp(17)
+		on_release: app.root.create_user()
+	BoxLayout:
 
 <Book@BoxLayout>:
 	canvas:
@@ -295,16 +260,16 @@ MainScreen:
 		text: 'Please Wait'
 
 <Error@Popup>:
-	size_hint: .8, None
-	height: error.height + sp(80)
+	size_hint: .8, .8
 	title: 'Check your connection!'
 	error: error
-	Label:
-		id: error
-		text: ''
-		size_hint_y: None
-		height: self.texture_size[1]
-		text_size: self.width, None
+	ScrollView:
+		Label:
+			id: error
+			text: ''
+			size_hint_y: None
+			height: self.texture_size[1]
+			text_size: self.width, None
 
 <Update@Popup>:
 	size_hint: .8, .8
@@ -316,7 +281,7 @@ MainScreen:
 		padding: sp(5)
 		BoxLayout:
 		Label:
-			text: 'Go To [color=#3498db][b]hp7017.github.io/Library-Genesis/[/b][/color] and download the latest versions.'
+			text: 'Go To [color=#3498db][b]librarygenesis.in[/b][/color] and download the latest versions.'
 			size_hint_y: None
 			height: self.texture_size[1]
 			text_size: self.width, None
@@ -325,5 +290,5 @@ MainScreen:
 		Button:
 			text: 'Copy Link'
 			on_press:
-				Clipboard.copy('hp7017.github.io/Library-Genesis/')
+				Clipboard.copy('librarygenesis.in')
 		BoxLayout:

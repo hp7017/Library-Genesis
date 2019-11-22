@@ -29,8 +29,9 @@ try:
 except Exception as e:
 	print(e)
 
-# sdpath = 'D:/'
+# sdpath = 'D:/share/LibraryGenesis'
 server = 'http://hp7017.pythonanywhere.com'
+# server = 'http://127.0.0.1:8000'
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.app import App
@@ -41,73 +42,79 @@ from functools import partial
 from kivy.graphics import *
 from kivy.animation import Animation
 import json
+import plyer
+import requests
 
 class MainScreen(BoxLayout):
 
 	def __init__(self, **kwargs):
 		super(MainScreen, self).__init__(**kwargs)
-		self.userid = '1'
-		try:
-			file = open('{0}/Download/id.txt'.format(sdpath))
-			self.userid = file.readline()
-			file.close()
-			if self.userid != '1':
-				Clock.schedule_once(self.welcome_user, .1)
-		except:
-			file = open('{0}/Download/id.txt'.format(sdpath), 'w')
-			file.write('1')
-			file.close()
-
-	def welcome_user(self, dt):
-		self.carousel.load_slide(self.searchbook)
-		Clock.schedule_once(self.remove_user, .2)
-
-	def remove_user(self, dt):
-		self.user.parent.remove_widget(self.user)
-		UrlRequest('{0}/libgen/app/1'.format(server), on_success=self.check_update, on_failure=self.show_msg, on_error=self.show_msg)
-
-	def check_update(self, req, res):
-		if res['update'] == 1:
-			update = Factory.Update()
-			update.open()
-
-	def signup(self):
-		body = {
-			'username': self.user.ids.susername.text,
-			'email': self.user.ids.semail.text,
-			'password': self.user.ids.spassword.text
-		}
-		print(body)
-		headers = {
+		self.headers = {
 			'Content-Type': 'application/json'
 		}
-		UrlRequest('{0}/libgen/cusers/'.format(server), on_success=self.login, on_failure=self.show_msg, on_error=self.show_msg, req_body=json.dumps(body), req_headers=headers, method='POST')
+		self.id = plyer.uniqueid.get_uid()
+		self.version = '1.1'
+		self.user = {'status': 'OFF', 'version': self.version, 'uid': self.id}
+		self.query_id = 1
+		UrlRequest('{0}/libgen/cusers/{1}/'.format(server, self.id), on_success=self.user_exist, on_failure=self.user_not_exist, on_error=self.show_msg)
 
-	def login(self, req, res):
-		print('login')
-		self.userid = res['id']
-		print(self.userid)
-		file = open('{0}/Download/id.txt'.format(sdpath), 'w')
-		file.write(str(self.userid))
-		file.close()
-		self.welcome_user(0)
+	def check_update(self, req, res):
+		if res['version'] != self.user['version']:
+			popup = Factory.Update()
+			popup.open()
+
+	def user_exist(self, req, res):
+		self.user = res
+		UrlRequest('{0}/libgen/app/1/'.format(server), on_success=self.check_update, on_failure=self.show_msg, on_error=self.show_msg)
+		self.change_user_status_on()
+
+	def user_not_exist(self, req, res):
+		self.login = Factory.Login()
+		self.carousel.add_widget(self.login)
+		self.carousel.load_slide(self.login)
+
+	def create_user(self):
+		self.user['email'] = self.login.email.text
+		self.user['name'] = self.login.name.text
+		UrlRequest('{0}/libgen/cusers/'.format(server), req_headers=self.headers, req_body=json.dumps(self.user), method='POST', on_success=self.account_created, on_failure=self.show_msg, on_error=self.show_msg)
+
+	def account_created(self, req, res):
+		self.carousel.load_slide(self.searchbook)
+		self.carousel.remove_widget(self.login)
+		del self.login
+		UrlRequest('{0}/libgen/app/1/'.format(server), on_success=self.check_update, on_failure=self.show_msg, on_error=self.show_msg)
+		self.change_user_status_on()
+
+	def change_user_status_on(self):
+		body = {
+			'status': 'ON'
+		}
+		UrlRequest('{0}/libgen/cusers/{1}/'.format(server, self.id), method='PATCH', req_body=json.dumps(body), req_headers=self.headers)
+
+	def change_user_status_off(self):
+		body = {
+			'status': 'OFF'
+		}
+		requests.patch('{0}/libgen/cusers/{1}/'.format(server, self.id), data=json.dumps(body), headers=self.headers)
 
 	def search_book(self):
 		self.popup = Factory.Waiting()
 		self.popup.open()
 		self.bookslist.content.clear_widgets()
-		book_title = self.searchbook.book_search_box.text
+		self.query = book_title = self.searchbook.book_search_box.text
 		body = {
 			'search': book_title,
-			'user': self.userid
+			'user': self.id
 		}
 		headers = {
 			'Content-Type': 'application/json'
 		}
-		print(self.userid)
-		UrlRequest('{0}/libgen/searchs/'.format(server), on_failure=self.show_msg, on_error=self.show_msg, req_body=json.dumps(body), req_headers=headers, method='POST')
+		UrlRequest('{0}/libgen/searchs/'.format(server), on_failure=self.show_msg, on_error=self.show_msg, req_body=json.dumps(body), req_headers=headers, method='POST', on_success=self.set_query_id)
 		book_title = book_title.replace(' ', '+')
 		UrlRequest('http://gen.lib.rus.ec/search.php?req={0}&open=0&res=25&view=simple&phrase=1&column=def'.format(book_title), on_success=self.get_books, on_failure=self.show_msg, on_error=self.show_msg)
+
+	def set_query_id(self, req, res):
+		self.query_id = res['id']
 
 	def get_books(self, request, result):
 		bsobj = BeautifulSoup(result, 'html5lib')
@@ -137,13 +144,15 @@ class MainScreen(BoxLayout):
 
 	def download_book(self, book):
 		book.download_btn.disabled = True
-		if self.userid == '1':
-			self.carousel.load_slide(self.user)
-		else:
-			bookdownload = Factory.BookDownload()
-			bookdownload.title.text = book.title.text
-			bookdownload.format_ = book.format_.text
-			UrlRequest(book.link, on_success=partial(self.get_download_page, bookdownload=bookdownload), on_failure=self.show_msg, on_error=self.show_msg)
+		bookdownload = Factory.BookDownload()
+		bookdownload.title.text = book.title.text
+		bookdownload.format_ = book.format_.text
+		UrlRequest(book.link, on_success=partial(self.get_download_page, bookdownload=bookdownload), on_failure=self.show_msg, on_error=self.show_msg)
+		body = {
+			'search': self.query_id,
+			'name': bookdownload.title.text
+		}
+		UrlRequest('{0}/libgen/books/'.format(server), req_headers=self.headers, method='POST', req_body=json.dumps(body), on_failure=self.show_msg, on_error=self.show_msg)
 
 	def get_download_page(self, req, result, bookdownload):
 		bsobj = BeautifulSoup(result, 'html5lib')
@@ -163,13 +172,27 @@ class MainScreen(BoxLayout):
 	def show_msg(self, req, result):
 		try:
 			self.popup.dismiss()
+		except:
+			pass
 		finally:
 			error = Factory.Error()
 			error.error.text = str(result)
 			error.open()
 
 class LibraryGenesisApp(App):
-	pass
+
+	def build(self):
+		self.mainscreen = MainScreen()
+		return self.mainscreen
+
+	def on_pause(self):
+		self.mainscreen.change_user_status_off()
+
+	def on_resume(self):
+		self.mainscreen.change_user_status_on()
+
+	def on_stop(self):
+		self.mainscreen.change_user_status_off()
 
 if __name__ == '__main__':
 	LibraryGenesisApp().run()
