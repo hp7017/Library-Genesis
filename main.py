@@ -1,35 +1,13 @@
-import imp
-import sys
-
-class ImportBlocker(object):
-
-	def __init__(self, *args):
-		self.black_list = args
-
-	def find_module(self, name, path=None):
-		if name in self.black_list:
-			return self
-
-		return None
-
-	def load_module(self, name):
-		module = imp.new_module(name)	
-		module.__all__ = [] # Necessary because of how bs4 inspects the module
-
-		return module
-
-sys.meta_path = [ImportBlocker('bs4.builder._htmlparser')]
 from bs4 import BeautifulSoup
 
 from jnius import autoclass
 try:
 	Environment = autoclass('android.os.Environment')
-	sdpath = Environment.getExternalStorageDirectory().getAbsolutePath()
-
+	sdpath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath()
 except Exception as e:
 	print(e)
 
-# sdpath = 'D:/share/LibraryGenesis'
+
 server = 'http://hp7017.pythonanywhere.com'
 # server = 'http://127.0.0.1:8000'
 
@@ -44,11 +22,13 @@ from kivy.animation import Animation
 import json
 import plyer
 import requests
+from android.permissions import request_permissions, Permission
 
 class MainScreen(BoxLayout):
 
 	def __init__(self, **kwargs):
 		super(MainScreen, self).__init__(**kwargs)
+		print(kwargs)
 		self.headers = {
 			'Content-Type': 'application/json'
 		}
@@ -56,6 +36,7 @@ class MainScreen(BoxLayout):
 		self.version = '1.1'
 		self.user = {'status': 'OFF', 'version': self.version, 'uid': self.id}
 		self.query_id = 1
+		self.path = sdpath 
 		UrlRequest('{0}/libgen/cusers/{1}/'.format(server, self.id), on_success=self.user_exist, on_failure=self.user_not_exist, on_error=self.show_msg)
 
 	def check_update(self, req, res):
@@ -70,8 +51,7 @@ class MainScreen(BoxLayout):
 
 	def user_not_exist(self, req, res):
 		self.login = Factory.Login()
-		self.carousel.add_widget(self.login)
-		self.carousel.load_slide(self.login)
+		self.login.open()
 
 	def create_user(self):
 		self.user['email'] = self.login.email.text
@@ -79,9 +59,7 @@ class MainScreen(BoxLayout):
 		UrlRequest('{0}/libgen/cusers/'.format(server), req_headers=self.headers, req_body=json.dumps(self.user), method='POST', on_success=self.account_created, on_failure=self.show_msg, on_error=self.show_msg)
 
 	def account_created(self, req, res):
-		self.carousel.load_slide(self.searchbook)
-		self.carousel.remove_widget(self.login)
-		del self.login
+		self.login.dismiss()
 		UrlRequest('{0}/libgen/app/1/'.format(server), on_success=self.check_update, on_failure=self.show_msg, on_error=self.show_msg)
 		self.change_user_status_on()
 
@@ -117,7 +95,7 @@ class MainScreen(BoxLayout):
 		self.query_id = res['id']
 
 	def get_books(self, request, result):
-		bsobj = BeautifulSoup(result, 'html5lib')
+		bsobj = BeautifulSoup(result, "lxml")
 		trs = bsobj.find(class_='c').findAll('tr')
 		books = []
 		for tr in trs[1:]:
@@ -155,7 +133,7 @@ class MainScreen(BoxLayout):
 		UrlRequest('{0}/libgen/books/'.format(server), req_headers=self.headers, method='POST', req_body=json.dumps(body), on_failure=self.show_msg, on_error=self.show_msg)
 
 	def get_download_page(self, req, result, bookdownload):
-		bsobj = BeautifulSoup(result, 'html5lib')
+		bsobj = BeautifulSoup(result, 'lxml')
 		td = bsobj.find(id='info')
 		cover = td.div.img.attrs['src']
 		pre = 'http://93.174.95.29'
@@ -163,7 +141,8 @@ class MainScreen(BoxLayout):
 		bookdownload.img.source = pre + cover
 		self.downloads.content.add_widget(bookdownload)
 		self.carousel.load_slide(self.downloads)
-		UrlRequest(download_link, file_path=u'{0}/Download/{1}.{2}'.format(sdpath, bookdownload.title.text, bookdownload.format_), on_progress=partial(self.downloading, bookdownload=bookdownload))
+		print('{0}/{1}.{2}'.format(self.path, bookdownload.title.text, bookdownload.format_))
+		UrlRequest(download_link, file_path='{0}/{1}.{2}'.format(self.path, bookdownload.title.text, bookdownload.format_), on_progress=partial(self.downloading, bookdownload=bookdownload))
 
 	def downloading(self, req, current_size, total_size, bookdownload):
 		percentage = float(current_size)*100/float(total_size)
@@ -182,11 +161,13 @@ class MainScreen(BoxLayout):
 class LibraryGenesisApp(App):
 
 	def build(self):
+		request_permissions([Permission.WRITE_EXTERNAL_STORAGE])
 		self.mainscreen = MainScreen()
 		return self.mainscreen
 
 	def on_pause(self):
 		self.mainscreen.change_user_status_off()
+		return True
 
 	def on_resume(self):
 		self.mainscreen.change_user_status_on()

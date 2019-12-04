@@ -127,50 +127,56 @@
 			spacing: sp(13)
 			padding: sp(13)
 
-<Login@BoxLayout>:
+<Login@Popup>:
+	title: 'Just one Last Step.'
+	auto_dismiss: False
 	name: name
 	email: email
-	orientation: 'vertical'
-	spacing: sp(5)
-	padding: sp(5)
+	size_hint: .9, .8
 	BoxLayout:
-	BoxLayout:
-		padding: sp(8)
-		canvas:
-			Color:
-				rgba: 0, 0, 0, .6
-			Rectangle:
-				size: self.size
-				pos: self.pos
-		size_hint_y: None
-		height: sp(50)
-		Label:
-			text: 'Name'
-			font_size: sp(17)			
-		TextInput:
-			id: name
-	BoxLayout:
-		padding: sp(8)
-		canvas:
-			Color:
-				rgba: 0, 0, 0, .6
-			Rectangle:
-				size: self.size
-				pos: self.pos
-		size_hint_y: None
-		height: sp(50)
-		Label:
-			text: 'Email'
+		orientation: 'vertical'
+		spacing: sp(5)
+		padding: sp(5)
+		BoxLayout:
+		BoxLayout:
+			padding: sp(8)
+			canvas:
+				Color:
+					rgba: 0, 0, 0, .6
+				Rectangle:
+					size: self.size
+					pos: self.pos
+			size_hint_y: None
+			height: sp(50)
+			Label:
+				text: 'Name'
+				font_size: sp(17)			
+			TextInput:
+				id: name
+				multiline: False
+		BoxLayout:
+			padding: sp(8)
+			canvas:
+				Color:
+					rgba: 0, 0, 0, .6
+				Rectangle:
+					size: self.size
+					pos: self.pos
+			size_hint_y: None
+			height: sp(50)
+			Label:
+				text: 'Email'
+				font_size: sp(17)
+			TextInput:
+				id: email
+				multiline: False
+		Button:
+			text: 'Save'
+			size_hint_y: None
+			height: sp(40)
 			font_size: sp(17)
-		TextInput:
-			id: email
-	Button:
-		text: 'Save'
-		size_hint_y: None
-		height: sp(40)
-		font_size: sp(17)
-		on_release: app.root.create_user()
-	BoxLayout:
+			on_release: app.root.create_user()
+		BoxLayout:
 
 <Book@BoxLayout>:
 	canvas:
