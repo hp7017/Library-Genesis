@@ -1,300 +1,408 @@
-#:import Clipboard kivy.core.clipboard.Clipboard
-<Label>:
-	font_size: sp(13)
-	halign: 'center'
+#:import ut kivy.utils.get_color_from_hex
 
-<TextInput>:
-	font_size: sp(15)
+<Bton@Button>:
+	path: ''
+	text: 'Open'
 	size_hint_y: None
-	height: sp(30)
+	height: self.texture_size[1]
+	padding_y: 5
+	background_normal: ''
+	background_color: ut('#3498db')
 
-<PLabel@Label>:
+<OpenButton@Bton>:
+	on_release: app.root.button_added(self.path)
+
+<TopBook@Label>:
 	canvas.before:
 		Color:
-			rgba: 33/255., 33/255., 33/255., .8
+			rgba: self.back_color
 		Rectangle:
 			size: self.size
 			pos: self.pos
+	back_color: (1,1,1,1)
+	font_size: 17
 	size_hint_y: None
-	height: sp(50)
-	font_size: sp(20)
+	text_size: root.width, None
+	height: self.texture_size[1]
+	halign: 'center'
+	padding_y: 20
+	padding_x: 10
+
+<AvailablBook@BoxLayout>:
+	canvas.before:
+		Color:
+			rgba: (0,0,0,.5)
+		Rectangle:
+			size: self.size
+			pos: self.pos
+	label_name: label_name
+	path: ''
+	orientation: 'vertical'
+	size_hint_y: None
+	height: self.minimum_height
+	padding: 10
+	spacing: 10
+	Label:
+		id: label_name
+		text: 'Python 3'
+		font_size: 17
+		size_hint_y: None
+		text_size: (root.width, None)
+		size: self.texture_size
+		halign: 'center'
+	BoxLayout:
+		size_hint_y: None
+		height: self.minimum_height
+		OpenButton:
+			path: root.path
+		Bton:
+			text: 'Delete'
+			path: root.path
+			on_release: app.root.delete_book(self.path, root)
+			background_color: ut('#e74c3c')
+
+<DownloadedDocs@Popup>:
+	box: box
+	title: 'Available Files'
+	size_hint: .8, .8
+	ScrollView:
+		BoxLayout:
+			id: box
+			orientation: 'vertical'
+			size_hint_y: None
+			spacing: 5
+			padding: 10
+			height: self.minimum_height
+
+<Waiting@Popup>:
+	title: ''
+	label: label
+	size_hint: (.6, .6)
+	auto_dismiss: False
+	Label:
+		id: label
+		text: 'Please Wait'
+
+<Login@Popup>:
+	title: 'One Last Step'
+	size_hint: (None, None)
+	size: 500, 500
+	auto_dismiss: False
+	label_msg: label_msg
+	textinput_name: textinput_name
+	textinput_email: textinput_email
+	BoxLayout:
+		orientation: 'vertical'
+		BoxLayout:
+		BoxLayout:
+			spacing: 10
+			padding: 10
+			orientation: 'vertical'
+			Label:
+				id: label_msg
+				font_size: 17
+				size_hint_y: None
+				text_size: (root.width, None)
+				size: self.texture_size
+				halign: 'center'
+			TextInput:
+				id: textinput_name
+				hint_text: 'Full Name'
+				multiline: False
+				write_tab: False
+				on_text_validate: app.root.login()
+			TextInput:
+				id: textinput_email
+				hint_text: 'Email'
+				multiline: False
+				write_tab: False
+				on_text_validate: app.root.login()
+			AppButton:
+				text: 'Save'
+				on_release:	app.root.login()
+		BoxLayout:
+
+<AppUpdate@Popup>:
+	title: 'We found some features.'
+	size_hint: (None, None)
+	size: 500, 500
+	auto_dismiss: False
+	BoxLayout:
+		BoxLayout:
+		BoxLayout:
+			title: 'App required an [b]Update[/b]'
+			markup: True
+		BoxLayout:
+
+<TextInput>:
+	size_hint_y: None
+	height: 50
+	background_normal: ''
+	background_color: (0, 0, 0, .5)
+	foreground_color: (1, 1, 1, 1)
+	multiline: False
+	halign: 'center'
+	padding_y: 12
+
+<AppButton@Button>:
+	size_hint_y: None
+	height: 50
+	background_normal: ''
+	background_color: ut('#3498db')
+	size_hint_y: None
+	height: self.texture_size[1]
+	padding_y: 10
+
+<Book@BoxLayout>:
+	canvas.before:
+		Color:
+			rgba: (0, 0, 0, .5)
+		Rectangle:
+			size: self.size
+			pos: self.pos
+	label_name: label_name
+	label_author: label_author
+	label_size : label_size
+	label_extension: label_extension
+	link: ''
+	detail: {}
+	orientation: 'vertical'
+	size_hint_y: None
+	height: self.minimum_height
+	padding: 10
+	spacing: 5
+	Label:
+		id: label_name
+		text: 'Python 3'
+		font_size: 17
+		size_hint_y: None
+		text_size: (root.width, None)
+		size: self.texture_size
+		halign: 'center'
+	Label:
+		id: label_author
+		text: 'by Dennis Ritchie'
+		size_hint_y: None
+		text_size: (root.width, None)
+		size: self.texture_size
+		halign: 'center'
+	Label:
+		id: label_size
+		text: 'by Dennis Ritchie'
+		size_hint_y: None
+		text_size: (root.width, None)
+		size: self.texture_size
+		halign: 'center'
+	Label:
+		id: label_extension
+		text: 'by Dennis Ritchie'
+		size_hint_y: None
+		text_size: (root.width, None)
+		size: self.texture_size
+		halign: 'center'
+	Button:
+		text: 'Download'
+		on_release: app.root.download_book(root.link, root.detail, self)
+		size_hint_y: None
+		height: self.texture_size[1]
+		padding_y: 5
+		background_normal: ''
+		background_color: ut('#3498db')
+
+<DownloadedBook@BoxLayout>
+	canvas.before:
+		Color:
+			rgba: (0, 0, 0, .5)
+		Rectangle:
+			size: self.size
+			pos: self.pos
+	label_name: label_name
+	pb: pb
+	path: ''
+	detail: None
+	req: None
+	cancel_btn: cancel_btn
+	box: box
+	orientation: 'vertical'
+	size_hint_y: None
+	height: self.minimum_height
+	padding: 10
+	spacing: 10
+	Label:
+		id: label_name
+		text: 'Python 3'
+		font_size: 17
+		size_hint_y: None
+		text_size: (root.width, None)
+		size: self.texture_size
+		halign: 'center'
+	BoxLayout:
+		id: box
+		spacing: 5
+		size_hint_y: None
+		height: 30
+		ProgressBar:
+			id: pb
+			value: 1
+		AppButton:
+			id: cancel_btn
+			text: 'Cancel'
+			size_hint_x: None
+			width: 60
+			on_release: app.root.cancel_downloading(root)
+
+
+<BorderBoxLayout@BoxLayout>:
+	canvas.before:
+		Color:
+			rgba: (0, 0, 0, .5)
+		Rectangle:
+			size: self.size
+			pos: self.pos
+		Color:
+			rgba: 1, 1, 1, 1
 
 <MainScreen>:
-	orientation: 'vertical'
-	carousel: carousel
 	searchbook: searchbook
-	bookslist: bookslist
-	downloads: downloads
-	sb: sb
-	bb: bb
-	db: db
+	showcase: showcase
+	box: box
+	orientation: 'vertical'
+	canvas.before:
+		Color:
+			rgb: 1,1,1
+		Rectangle:
+			size: self.size
+			pos: self.pos
+			source: 'library.jif'
 	ActionBar:
 		ActionView:
 			use_separator: True
 			ActionPrevious:
-				app_icon: 'icon1.png'
 				title: 'Library Genesis'
 				with_previous: False
-			ActionOverflow:
-				ActionButton:
-					text: 'Search Book'
-					id: sb
-					on_press: app.root.carousel.load_slide(app.root.searchbook)
-				ActionButton:
-					text: 'Books List'
-					id: bb
-					on_press: app.root.carousel.load_slide(app.root.bookslist)
-				ActionButton:
-					text: 'Downloads'
-					id: db
-					on_press: app.root.carousel.load_slide(app.root.downloads)
-	Carousel:
-		canvas:
-			Color:
-				rgb: 1, 1, 1
-			Rectangle:
-				size: self.height*2, self.height
-				pos: self.pos
-				source: 'books.jpg'
-			Color:
-				rgba: 0, 0, 0, .4
-			Rectangle:
-				size: self.height*2, self.height
-				pos: self.pos
-		id: carousel
+				app_icon: 'icon.png'
+			ActionButton:
+				text: 'Dowloaded Docs'
+				on_release: root.show_docs()
+				background_normal: ''
+				background_color: ut('#3498db')
+
+	BoxLayout:
+		id: box
+		spacing: 5
+		padding: 5
 		SearchBook:
 			id: searchbook
-		BooksList:
-			id: bookslist
-		Downloads:
-			id: downloads
+		Showcase:
+			id: showcase
 
-<SearchBook@RelativeLayout>:
-	book_search_box: book_search_box
+<Showcase@BoxLayout>:
+	box: box
+	orientation: 'vertical'
+	ScrollView:
+		BoxLayout:
+			orientation: 'vertical'
+			id: box
+			size_hint_y: None
+			height: self.minimum_height
+			spacing: 2
+			Label:
+				canvas.before:
+					Color:
+						rgba: (0, 0, 0, .5)
+					Rectangle:
+						size: self.size
+						pos: self.pos
+					Color:
+						rgba: 1, 1, 1, 1
+				text: 'Top 10 Books'
+				font_size: 20
+				size_hint_y: None
+				text_size: (root.width, None)
+				height: self.texture_size[1]+20
+				halign: 'center'
+
+
+<SearchBook@BorderBoxLayout>:
+	textinput: textinput
+	orientation: 'vertical'
 	Label:
 		canvas.before:
 			Color:
-				rgba: 33/255., 33/255., 33/255., .8
+				rgba: (0, 0, 0, .5)
 			Rectangle:
 				size: self.size
 				pos: self.pos
-		text: 'Search Book'
-		font_size: sp(20)
-		size_hint: 1, None
-		height: sp(50)
-		top: root.top
-	TextInput:
-		id: book_search_box
-		on_text_validate: app.root.search_book()
-		multiline: False
-		size_hint: .7, None
-		height: sp(30)
-		pos_hint: {'center_x': .5, 'center_y': .53}
-	Button:
+			Color:
+				rgba: 1, 1, 1, 1
 		text: 'Search'
-		on_press: app.root.search_book()
-		size_hint: .7, None
-		height: sp(30)
-		pos_hint: {'center_x': .5, 'center_y': .47}
+		font_size: 20
+		size_hint_y: None
+		text_size: (root.width, None)
+		height: self.texture_size[1]+20
+		halign: 'center'
+	BoxLayout:
+		orientation: 'vertical'
+		padding: 10
+		TextInput:
+			id: textinput
+			hint_text: 'Enter Book or Author Name'
+			on_text_validate: app.root.search_book()
+		AppButton:
+			text: 'Search'
+			on_release: app.root.search_book()
+	BoxLayout:
 
-<BooksList@BoxLayout>:
-	content: content
-	spacing: sp(5)
+<BookList@BorderBoxLayout>:
+	boxlayout: boxlayout
 	orientation: 'vertical'
-	PLabel:
+	Label:
+		canvas.before:
+			Color:
+				rgba: (0, 0, 0, .5)
+			Rectangle:
+				size: self.size
+				pos: self.pos
+			Color:
+				rgba: 1, 1, 1, 1
 		text: 'Book List'
+		font_size: 20
+		size_hint_y: None
+		text_size: (root.width, None)
+		height: self.texture_size[1]+20
+		halign: 'center'
 	ScrollView:
 		BoxLayout:
-			id: content
+			id: boxlayout
 			orientation: 'vertical'
 			size_hint_y: None
 			height: self.minimum_height
-			spacing: sp(13)
-			padding: sp(13)
+			spacing: 10
+			padding: 20
 
-<Downloads@BoxLayout>:
-	content: content
-	spacing: sp(5)
+<Downloads@BorderBoxLayout>:
 	orientation: 'vertical'
-	PLabel:
+	boxlayout: boxlayout
+	Label:
+		canvas.before:
+			Color:
+				rgba: (0, 0, 0, .5)
+			Rectangle:
+				size: self.size
+				pos: self.pos
+			Color:
+				rgba: 1, 1, 1, 1
 		text: 'Downloads'
+		font_size: 20
+		size_hint_y: None
+		text_size: (root.width, None)
+		height: self.texture_size[1]+20
+		halign: 'center'
 	ScrollView:
 		BoxLayout:
-			id: content
+			id: boxlayout
 			orientation: 'vertical'
 			size_hint_y: None
 			height: self.minimum_height
-			spacing: sp(13)
-			padding: sp(13)
-
-<Login@Popup>:
-	title: 'Just one Last Step.'
-	auto_dismiss: False
-	name: name
-	email: email
-	size_hint: .9, .8
-	BoxLayout:
-		orientation: 'vertical'
-		spacing: sp(5)
-		padding: sp(5)
-		BoxLayout:
-		BoxLayout:
-			padding: sp(8)
-			canvas:
-				Color:
-					rgba: 0, 0, 0, .6
-				Rectangle:
-					size: self.size
-					pos: self.pos
-			size_hint_y: None
-			height: sp(50)
-			Label:
-				text: 'Name'
-				font_size: sp(17)			
-			TextInput:
-				id: name
-				multiline: False
-		BoxLayout:
-			padding: sp(8)
-			canvas:
-				Color:
-					rgba: 0, 0, 0, .6
-				Rectangle:
-					size: self.size
-					pos: self.pos
-			size_hint_y: None
-			height: sp(50)
-			Label:
-				text: 'Email'
-				font_size: sp(17)
-			TextInput:
-				id: email
-				multiline: False
-		Button:
-			text: 'Save'
-			size_hint_y: None
-			height: sp(40)
-			font_size: sp(17)
-			on_release: app.root.create_user()
-		BoxLayout:
-
-<Book@BoxLayout>:
-	canvas:
-		Color:
-			rgba: 33/255., 33/255., 33/255., .8
-		Rectangle:
-			size: self.size
-			pos: self.pos
-	title: title
-	author: author
-	size_: size_
-	format_: format_
-	link: ''
-	download_btn: download_btn
-	size_hint: .9, None
-	pos_hint: {'center_x': .5}
-	height: self.minimum_height
-	orientation: 'vertical'
-	spacing: sp(5)
-	padding: sp(5)
-	Label:
-		id: title
-		size_hint_y: None
-		height: self.texture_size[1]
-		text_size: self.width, None
-		text: ''
-		font_size: sp(15)
-	Label:
-		id: author
-		size_hint_y: None
-		height: self.texture_size[1]
-		text_size: self.width, None
-		text: ''
-	Label:
-		id: size_
-		size_hint_y: None
-		height: self.texture_size[1]
-		text: ''
-	Label:
-		id: format_
-		size_hint_y: None
-		height: self.texture_size[1]
-		text: ''
-	Button:
-		id: download_btn
-		text: 'Download'
-		size_hint_y: None
-		height: self.texture_size[1]+sp(10)
-		on_press: app.root.download_book(root)
-
-<BookDownload@BoxLayout>:
-	canvas:
-		Color:
-			rgba: 33/255., 33/255., 33/255., .8
-		Rectangle:
-			size: self.size
-			pos: self.pos
-	title: title
-	progress: progress
-	img: img
-	format_: ''
-	size_hint_y: None
-	height: self.minimum_height
-	orientation: 'vertical'
-	spacing: sp(5)
-	padding: sp(5)
-	AsyncImage:
-		id: img
-		source: ''
-		allow_stretch: True
-		size_hint_y: None
-		height: sp(170)
-	Label:
-		id: title
-		size_hint_y: None
-		height: self.texture_size[1]
-		text_size: self.width, None
-		text: ''
-	ProgressBar:
-		id: progress
-
-<Waiting@Popup>:
-	auto_dismiss: False
-	size_hint: (.4, .3)
-	title: ''
-	Label:
-		text: 'Please Wait'
-
-<Error@Popup>:
-	size_hint: .8, .8
-	title: 'Check your connection!'
-	error: error
-	ScrollView:
-		Label:
-			id: error
-			text: ''
-			size_hint_y: None
-			height: self.texture_size[1]
-			text_size: self.width, None
-
-<Update@Popup>:
-	size_hint: .8, .8
-	title: 'Required Update'
-	auto_dismiss: False
-	BoxLayout:
-		orientation: 'vertical'
-		spacing: sp(5)
-		padding: sp(5)
-		BoxLayout:
-		Label:
-			text: 'Go To [color=#3498db][b]librarygenesis.in[/b][/color] and download the latest versions.'
-			size_hint_y: None
-			height: self.texture_size[1]
-			text_size: self.width, None
-			markup: True
-			font_size: sp(17)
-		Button:
-			text: 'Copy Link'
-			on_press:
-				Clipboard.copy('librarygenesis.in')
-		BoxLayout:
+			spacing: 10
+			padding: 20

@@ -1,0 +1,4 @@
+.buildozer/
+bin/
+build/
+*spec
